@@ -1,0 +1,11 @@
+__pycache__/
+.vscode/
+log/
+*.spec
+*.pyc
+build/
+dist/
+*.pkg
+tool/hrs/sym/
+rep/
+esp/
