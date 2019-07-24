@@ -3,9 +3,9 @@
 
 import time
 import datetime
-from basifuns import timeFuncs
+from basifuns import timeFuncs, configFuncs
 from main.mainFunc import MainWindow
 
-day = timeFuncs.whatDayToday(1)
+a = configFuncs.readTasksConf()
 
-print(day)
+print(a)
