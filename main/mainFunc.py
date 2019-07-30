@@ -16,6 +16,8 @@ import re
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     curLang = 0
+    taskList = list()
+    todoList = list()
 
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -37,6 +39,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         self.localize(self.curLang)
         self.showTaskList()
+        self.showTodoToday()
 
     #event
     def closeEvent(self, event):
@@ -72,7 +75,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     #taskShow
     def showTaskList(self):
-        taskList = c.readTasksConf()
+        self.taskList = c.readTasksConf()
 
         insInfo = [l.taskName[self.curLang], l.taskFreq[self.curLang], l.taskDate[self.curLang], l.taskTime[self.curLang]]
         insList = ["task_name", "task_freq", "task_date", "task_time"]
@@ -83,7 +86,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         ctRow = 0
 
-        for task in taskList:
+        for task in self.taskList:
             self.taskStandardize(task)
 
             ctCol = 0
@@ -96,6 +99,40 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             ctRow += 1
         
         self.taskListTable.setModel(self.taskListTable.model)
+
+    def showTodoToday(self):
+        taskList4Todo = c.readTasksConf()
+
+        insInfo = [l.taskName[self.curLang], l.taskFreq[self.curLang], l.taskDate[self.curLang], l.taskTime[self.curLang]]
+        insList = ["task_name", "task_freq", "task_date", "task_time"]
+
+        self.todayTodoTable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.todayTodoTable.model = QStandardItemModel(0, 0, self.todayTodoTable)
+        self.todayTodoTable.model.setHorizontalHeaderLabels(insInfo)
+
+        ctRow = 0
+
+        for task in taskList4Todo:
+            if self.taskIsTodo(task):
+                self.taskStandardize(task)
+
+                ctCol = 0
+
+                for ins in insList:
+                    item = QStandardItem(task[ins])
+                    self.todayTodoTable.model.setItem(ctRow, ctCol, item)
+
+                    ctCol += 1
+
+                ctRow += 1
+
+        self.todayTodoTable.setModel(self.todayTodoTable.model)
+
+        self.todayTodoTable.doubleClicked.connect(self.todoAct)
+        
+
+
+
     
     #standardize
     def taskStandardize(self, task):
@@ -171,3 +208,94 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 task["task_time"] = l.unknown[self.curLang]
         except:
             task["task_time"] = l.unknown[self.curLang]
+    
+    def taskIsTodo(self, task):
+        if task["task_freq"] == "daily_weekday":
+            if (t.whatDayToday(self.curLang) in l.monday) or (t.whatDayToday(self.curLang) in l.tuesday) or (t.whatDayToday(self.curLang) in l.wednesday) or (t.whatDayToday(self.curLang) in l.thursday) or (t.whatDayToday(self.curLang) in l.friday):
+                return True
+            else:
+                return False
+        elif task["task_freq"] == "daily_weekend":
+            if (t.whatDayToday(self.curLang) in l.saturday) or (t.whatDayToday(self.curLang) in l.sunday):
+                return True
+            else:
+                return False
+        elif task["task_freq"] == "weekly_sunday":
+            if (t.whatDayToday(self.curLang) in l.sunday):
+                return True
+            else:
+                return False
+        elif task["task_freq"] == "weekly_monday":
+            if (t.whatDayToday(self.curLang) in l.monday):
+                return True
+            else:
+                return False
+        elif task["task_freq"] == "weekly_tuesday":
+            if (t.whatDayToday(self.curLang) in l.tuesday):
+                return True
+            else:
+                return False
+        elif task["task_freq"] == "weekly_wednesday":
+            if (t.whatDayToday(self.curLang) in l.wednesday):
+                return True
+            else:
+                return False
+        elif task["task_freq"] == "weekly_thursday":
+            if (t.whatDayToday(self.curLang) in l.thursday):
+                return True
+            else:
+                return False
+        elif task["task_freq"] == "weekly_friday":
+            if (t.whatDayToday(self.curLang) in l.friday):
+                return True
+            else:
+                return False
+        elif task["task_freq"] == "weekly_saturday":
+            if (t.whatDayToday(self.curLang) in l.saturday):
+                return True
+            else:
+                return False
+        elif task["task_freq"] == "monthly":
+            if task["task_date"] == time.strftime("%d",time.localtime(time.time())):
+                return True
+            else:
+                return False
+        elif task["task_freq"] == "double_monthly":
+            if (task["task_date"] == time.strftime("%d",time.localtime(time.time()))) and (int(time.strftime("%m",time.localtime(time.time()))) % 2 == 0):
+                return True
+            else:
+                return False
+        elif task["task_freq"] == "seasonly":
+            if (task["task_date"] == time.strftime("%d",time.localtime(time.time()))) and (int(time.strftime("%m",time.localtime(time.time()))) % 3 == 0):
+                return True
+            else:
+                return False
+        elif task["task_freq"] == "annually":
+            num = task["task_date"].split("_")
+            if (num[0] == time.strftime("%m",time.localtime(time.time()))) and (num[1] == time.strftime("%d",time.localtime(time.time()))):
+                return True
+            else:
+                return False
+        else:
+            return False
+    
+    #button for table
+    def todoAct(self):
+        index =  self.todayTodoTable.currentIndex()
+        rowNum = index.row()
+        taskName = self.todayTodoTable.model.item(rowNum, 0).text()
+
+        reply = QMessageBox.question(self, 
+                                                "EasyOM",
+                                                l.confirmFinish[self.curLang] + taskName + l.questionMark[self.curLang],
+                                                QMessageBox.Yes | QMessageBox.No,
+                                                QMessageBox.No)
+        
+        if reply == QMessageBox.Yes:
+            ...
+        else:
+            pass
+
+    #todo2Done
+    def todo2Done(self, task):
+        ...

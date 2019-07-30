@@ -6,6 +6,4 @@ import datetime
 from basifuns import timeFuncs, configFuncs
 from main.mainFunc import MainWindow
 
-a = configFuncs.readTasksConf()
-
-print(a)
+print(timeFuncs.whatDayToday())

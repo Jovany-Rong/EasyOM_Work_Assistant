@@ -18,6 +18,7 @@ taskName = ["Task Name", "任务名称"]
 taskFreq = ["Task Frequence", "任务频率"]
 taskDate = ["Task Date", "任务日期"]
 taskTime = ["Task Time", "任务时间"]
+taskAct = ["Task Action", "任务操作"]
 
 #Time & Date
 sunday = ["Sunday", "星期日"]
@@ -51,6 +52,13 @@ emergency = ["Emergency", "突发"]
 
 yue = [" / ", "月"]
 ri = ["", "日"]
+
+#Buttons
+finish = ["Finish", "办结"]
+
+#Messages
+confirmFinish = ["Do you confirm to finish ", "确认办结"]
+questionMark = [" ?", "？"]
 
 #Others
 unknown = ["Unknown", "未知"]
