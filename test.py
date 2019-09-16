@@ -1,9 +1,20 @@
 #!/usr/local/bin python
 #coding: utf-8
 
-import time
-import datetime
-from basifuns import timeFuncs, configFuncs
-from main.mainFunc import MainWindow
+' a test module '
 
-print(timeFuncs.whatDayToday())
+__author__ = 'Jovany Rong'
+
+import sys
+
+def test():
+    args = sys.argv
+    if len(args)==1:
+        print('Hello, world!')
+    elif len(args)==2:
+        print('Hello, %s!' % args[1])
+    else:
+        print('Too many arguments!')
+
+if __name__=='__main__':
+    test()

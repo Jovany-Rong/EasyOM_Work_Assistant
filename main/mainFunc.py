@@ -13,6 +13,7 @@ from basifuns import configFuncs as c
 import time
 import ctypes
 import re
+from os import path, makedirs
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     curLang = 0
@@ -40,6 +41,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.localize(self.curLang)
         self.showTaskList()
         self.showTodoToday()
+        self.showDoneToday()
 
     #event
     def closeEvent(self, event):
@@ -129,10 +131,39 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.todayTodoTable.setModel(self.todayTodoTable.model)
 
         self.todayTodoTable.doubleClicked.connect(self.todoAct)
+
+        if ctRow == 0:
+            QMessageBox.information(self, "Information", l.noTodo[self.curLang])
         
+        self.moveTodo2Left()
+        
+    def showDoneToday(self):
+        taskList4Done = c.readDoneLogToday()
 
+        insInfo = [l.taskName[self.curLang], l.doneTime[self.curLang]]
+        insList = ["task_name", "done_time"]
 
+        self.todayDoneTable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.todayDoneTable.model = QStandardItemModel(0, 0, self.todayDoneTable)
+        self.todayDoneTable.model.setHorizontalHeaderLabels(insInfo)
 
+        ctRow = 0
+
+        for task in taskList4Done:
+            if 1 == 1:
+                #self.taskStandardize(task)
+
+                ctCol = 0
+
+                for ins in insList:
+                    item = QStandardItem(task[ins])
+                    self.todayDoneTable.model.setItem(ctRow, ctCol, item)
+
+                    ctCol += 1
+
+                ctRow += 1
+
+        self.todayDoneTable.setModel(self.todayDoneTable.model)
     
     #standardize
     def taskStandardize(self, task):
@@ -210,6 +241,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             task["task_time"] = l.unknown[self.curLang]
     
     def taskIsTodo(self, task):
+        doneList = c.readDoneLogToday()
+
+        for done in doneList:
+            if task["task_name"] == done["task_name"]:
+                return False
+
         if task["task_freq"] == "daily_weekday":
             if (t.whatDayToday(self.curLang) in l.monday) or (t.whatDayToday(self.curLang) in l.tuesday) or (t.whatDayToday(self.curLang) in l.wednesday) or (t.whatDayToday(self.curLang) in l.thursday) or (t.whatDayToday(self.curLang) in l.friday):
                 return True
@@ -283,19 +320,60 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def todoAct(self):
         index =  self.todayTodoTable.currentIndex()
         rowNum = index.row()
-        taskName = self.todayTodoTable.model.item(rowNum, 0).text()
-
-        reply = QMessageBox.question(self, 
+        try:
+            taskName = self.todayTodoTable.model.item(rowNum, 0).text()
+            taskFreq = self.todayTodoTable.model.item(rowNum, 1).text()
+            taskDate = self.todayTodoTable.model.item(rowNum, 2).text()
+        
+            reply = QMessageBox.question(self, 
                                                 "EasyOM",
                                                 l.confirmFinish[self.curLang] + taskName + l.questionMark[self.curLang],
                                                 QMessageBox.Yes | QMessageBox.No,
                                                 QMessageBox.No)
         
-        if reply == QMessageBox.Yes:
-            ...
-        else:
+            if reply == QMessageBox.Yes:
+                self.todo2Done(taskName)
+            else:
+                pass
+        except:
             pass
 
     #todo2Done
-    def todo2Done(self, task):
-        ...
+    def todo2Done(self, taskName):
+        if not path.isdir("log"):
+            makedirs("log")
+        
+        today = time.strftime('%Y-%m-%d',time.localtime(time.time()))
+
+        now = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+
+        doneFileName = "done_%s.done" % today
+
+        missionList = self.taskList
+
+        text = ""
+
+        for mission in missionList:
+            if mission["task_name"] == taskName:
+                task = mission
+        
+        try:
+            text = text + ("----\ntask_name : %s\ndue_date : %s\ndone_time : %s\n" % (task["task_name"], "", now))
+        except Exception as E:
+            print(E)
+
+        with open("log/%s" % doneFileName, "a+", encoding="utf-8") as fa:
+            fa.write(text + "\n")
+        
+        self.showDoneToday()
+        self.showTodoToday()
+    
+    def moveTodo2Left(self):
+        rowNum = 0
+
+        while True:
+            try:
+                print(self.todayTodoTable.model.item(rowNum, 0).text())
+                rowNum += 1
+            except:
+                break

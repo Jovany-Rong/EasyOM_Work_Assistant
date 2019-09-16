@@ -19,6 +19,7 @@ taskFreq = ["Task Frequence", "任务频率"]
 taskDate = ["Task Date", "任务日期"]
 taskTime = ["Task Time", "任务时间"]
 taskAct = ["Task Action", "任务操作"]
+doneTime = ["Finish Time", "办结时间"]
 
 #Time & Date
 sunday = ["Sunday", "星期日"]
@@ -62,3 +63,4 @@ questionMark = [" ?", "？"]
 
 #Others
 unknown = ["Unknown", "未知"]
+noTodo = ["Congratulations! All to-dos today have been finished.", "恭喜！今天的待办任务已全部完成！"]
