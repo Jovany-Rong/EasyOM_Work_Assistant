@@ -7,6 +7,10 @@ import time
 import datetime
 from langs import lanpacks as l
 
+def getTimeHm():
+    now = time.strftime("%H:%M",time.localtime(time.time()))
+    return now
+
 def whatDayToday(lang):
     """
     Return what day it is today, based on the set language.

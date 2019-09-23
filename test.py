@@ -10,4 +10,4 @@ from basifuns import timeFuncs as t
 from basifuns import configFuncs as c
 
 if __name__ == "__main__":
-    print(t.strDateDiff("2019-07-30", "2019-07-31"))
+    print(t.getTimeHm())
