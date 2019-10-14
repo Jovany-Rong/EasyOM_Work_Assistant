@@ -6,6 +6,7 @@ sys.path.append("..")
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+from PyQt5.QtMultimedia import QSound
 from UIs.Ui_mainWindow import Ui_MainWindow
 from UIs.Ui_addEmer import Ui_addEmer
 from langs import lanpacks as l
@@ -20,6 +21,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     curLang = 1
     taskList = list()
     todoList = list()
+    alertList = list()
 
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -28,6 +30,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusBar().showMessage("Powered by Chenfei Jovany Rong | Site: https://rongchenfei.com")
         self.tabWidget.setCurrentIndex(0)
         self.setWindowIcon(QIcon("src/easyOM2.png"))
+        self.alertSound = QSound("src/alert.wav", self)
 
         self.timer = QBasicTimer()
         self.timer.start(10, self)
@@ -69,6 +72,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             super(WigglyWidget, self).timerEvent(event)
         
         self.dateLable.setText(t.whatDateToday() + " " + t.whatDayToday(self.curLang))
+        self.checkAlert()
+
+    def checkAlert(self):
+        now = t.getTimeHm()
+        #now = time.strftime("%",time.localtime())
+        rowNum = 0
+        flag = True
+        while flag:
+            try:
+                taskName = self.todayTodoTable.model.item(rowNum, 0).text()
+                taskTime = self.todayTodoTable.model.item(rowNum, 3).text()
+                rowNum += 1
+                if (taskTime == now) and (taskName not in self.alertList):
+                    self.alertSound.play()
+                    QMessageBox.question(self, 
+                                                "EasyOM",
+                                                "%s\n\n【%s】任务时间到了！" % (now, taskName),
+                                                QMessageBox.Ok)
+                    self.alertList.append(taskName)
+            except:
+                flag = False
 
     def dateInit(self):
         today = time.strftime("%Y-%m-%d", time.localtime())
