@@ -3,6 +3,7 @@
 
 import time
 import os
+from langs import lanpacks as l
 
 def readTasksConf():
     path = "conf/tasks.conf"
@@ -31,7 +32,7 @@ def readTasksConf():
                     tList = row.split(" : ")
                     dd[tList[0]] = tList[1]
 
-            if "task_name" in dd.keys() and "task_freq" in dd.keys() and "task_date" in dd.keys() and "task_time" in dd.keys() and "task_solution" in dd.keys():
+            if "task_name" in dd.keys() and "task_freq" in dd.keys() and "task_date" in dd.keys() and "task_time" in dd.keys() and "task_solution" in dd.keys() and "task_type" in dd.keys() and "task_deli_need" in dd.keys():
                 ddList.append(dd)
         
     except:
@@ -65,6 +66,9 @@ def readEmerConf():
                 if " : " in row:
                     tList = row.split(" : ")
                     dd[tList[0]] = tList[1]
+            
+            dd["task_type"] = l.tempoTask[1]
+            dd["task_deli_need"] = "no"
 
             if "task_name" in dd.keys() and "task_freq" in dd.keys() and "task_date" in dd.keys() and "task_time" in dd.keys() and "task_solution" in dd.keys():
                 ddList.append(dd)

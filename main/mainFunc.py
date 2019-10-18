@@ -6,7 +6,7 @@ sys.path.append("..")
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from PyQt5.QtMultimedia import QSound
+#from PyQt5.QtMultimedia import QSound
 from UIs.Ui_mainWindow import Ui_MainWindow
 from UIs.Ui_addEmer import Ui_addEmer
 from langs import lanpacks as l
@@ -30,7 +30,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusBar().showMessage("Powered by Chenfei Jovany Rong | Site: https://rongchenfei.com")
         self.tabWidget.setCurrentIndex(0)
         self.setWindowIcon(QIcon("src/easyOM2.png"))
-        self.alertSound = QSound("src/alert.wav", self)
+        #self.alertSound = QSound("src/alert.wav", self)
 
         self.timer = QBasicTimer()
         self.timer.start(10, self)
@@ -82,10 +82,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         while flag:
             try:
                 taskName = self.todayTodoTable.model.item(rowNum, 0).text()
-                taskTime = self.todayTodoTable.model.item(rowNum, 3).text()
+                taskTime = self.todayTodoTable.model.item(rowNum, 4).text()
                 rowNum += 1
                 if (taskTime == now) and (taskName not in self.alertList):
-                    self.alertSound.play()
+                    #self.alertSound.play()
                     QMessageBox.question(self, 
                                                 "EasyOM",
                                                 "%s\n\n【%s】任务时间到了！" % (now, taskName),
@@ -127,8 +127,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def showTaskList(self):
         self.taskList = c.readTasksConf()
 
-        insInfo = [l.taskName[self.curLang], l.taskFreq[self.curLang], l.taskDate[self.curLang], l.taskTime[self.curLang]]
-        insList = ["task_name", "task_freq", "task_date", "task_time"]
+        insInfo = [l.taskName[self.curLang], l.taskType[self.curLang], l.taskFreq[self.curLang], l.taskDate[self.curLang], l.taskTime[self.curLang], l.taskDeli[self.curLang]]
+        insList = ["task_name", "task_type", "task_freq", "task_date", "task_time", "task_deli_need"]
 
         self.taskListTable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.taskListTable.model = QStandardItemModel(0, 0, self.taskListTable)
@@ -157,8 +157,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         taskList4Todo = c.readTasksConf()
         taskList4Emer = c.readEmerConf()
 
-        insInfo = [l.taskName[self.curLang], l.taskFreq[self.curLang], l.taskDate[self.curLang], l.taskTime[self.curLang]]
-        insList = ["task_name", "task_freq", "task_date", "task_time"]
+        insInfo = [l.taskName[self.curLang], l.taskType[self.curLang], l.taskFreq[self.curLang], l.taskDate[self.curLang], l.taskTime[self.curLang], l.taskDeli[self.curLang]]
+        insList = ["task_name", "task_type", "task_freq", "task_date", "task_time", "task_deli_need"]
 
         self.todayTodoTable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.todayTodoTable.model = QStandardItemModel(0, 0, self.todayTodoTable)
@@ -325,6 +325,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 task["task_time"] = l.unknown[self.curLang]
         except:
             task["task_time"] = l.unknown[self.curLang]
+
+        try:
+            og = task["task_deli_need"]
+            if og == "yes":
+                task["task_deli_need"] = l.yes[self.curLang]
+            else:
+                task["task_deli_need"] = l.no[self.curLang]
+        except:
+            pass
 
     def emerIsTodo(self, task):
         doneList = c.readDoneLogToday()
@@ -587,8 +596,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         rowNum = index.row()
         try:
             taskName = self.todayTodoTable.model.item(rowNum, 0).text()
-            taskFreq = self.todayTodoTable.model.item(rowNum, 1).text()
-            taskDate = self.todayTodoTable.model.item(rowNum, 2).text()
+            taskFreq = self.todayTodoTable.model.item(rowNum, 2).text()
+            taskDate = self.todayTodoTable.model.item(rowNum, 3).text()
+            taskType = self.todayTodoTable.model.item(rowNum, 1).text()
+            taskDeliNeed = self.todayTodoTable.model.item(rowNum, 5).text()
+            taskDeli = "/"
+
+            if taskDeliNeed in l.yes:
+                isDeli = True
+            else:
+                isDeli = False
         
             reply = QMessageBox.question(self, 
                                                 "EasyOM",
@@ -597,14 +614,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                                 QMessageBox.No)
         
             if reply == QMessageBox.Yes:
-                self.todo2Done(taskName)
+                if isDeli:
+                    ...
+                else:
+                    self.todo2Done(taskName, taskType, taskDeli)
             else:
                 pass
         except:
             pass
 
     #todo2Done
-    def todo2Done(self, taskName):
+    def todo2Done(self, taskName, taskType, taskDeli):
         if not path.isdir("log"):
             makedirs("log")
         
@@ -623,7 +643,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 #task = mission
         
         try:
-            text = text + ("----\ntask_name : %s\ndue_date : %s\ndone_time : %s\n" % (taskName, "", now))
+            text = text + ("----\ntask_name : %s\ntask_type : %s\ntask_deli : %s\ndue_date : %s\ndone_time : %s\n" % (taskName, taskType, taskDeli, "", now))
         except Exception as E:
             print(E)
 
@@ -758,9 +778,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         rowNum = index.row()
         try:
             taskName = self.todayTodoTable.model.item(rowNum, 0).text()
-            taskFreq = self.todayTodoTable.model.item(rowNum, 1).text()
-            taskDate = self.todayTodoTable.model.item(rowNum, 2).text()
-            taskTime = self.todayTodoTable.model.item(rowNum, 3).text()
+            taskType = self.todayTodoTable.model.item(rowNum, 1).text()
+            taskFreq = self.todayTodoTable.model.item(rowNum, 2).text()
+            taskDate = self.todayTodoTable.model.item(rowNum, 3).text()
+            taskTime = self.todayTodoTable.model.item(rowNum, 4).text()
+            taskDeliNeed = self.todayTodoTable.model.item(rowNum, 5).text()
             taskSolution = "/"
             emerList = c.readEmerConf()
             for i in self.taskList:
@@ -775,9 +797,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.question(self, 
                                                 "EasyOM",
                                                 l.taskName[self.curLang] + ": " + taskName + "\n" 
+                                                + l.taskType[self.curLang] + ": " + taskType + "\n"
                                                 + l.taskFreq[self.curLang] + ": " + taskFreq + "\n"
                                                 + l.taskDate[self.curLang] + ": " + taskDate + "\n"
                                                 + l.taskTime[self.curLang] + ": " + taskTime + "\n"
+                                                + l.taskDeli[self.curLang] + ": " + taskDeliNeed + "\n"
                                                 + l.taskSolution[self.curLang] + ": \n" + taskSolution + "\n",
                                                 QMessageBox.Ok)
         except:
@@ -788,9 +812,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         rowNum = index.row()
         try:
             taskName = self.taskListTable.model.item(rowNum, 0).text()
-            taskFreq = self.taskListTable.model.item(rowNum, 1).text()
-            taskDate = self.taskListTable.model.item(rowNum, 2).text()
-            taskTime = self.taskListTable.model.item(rowNum, 3).text()
+            taskType = self.taskListTable.model.item(rowNum, 1).text()
+            taskFreq = self.taskListTable.model.item(rowNum, 2).text()
+            taskDate = self.taskListTable.model.item(rowNum, 3).text()
+            taskTime = self.taskListTable.model.item(rowNum, 4).text()
+            taskDeliNeed = self.taskListTable.model.item(rowNum, 5).text()
             taskSolution = "/"
             emerList = c.readEmerConf()
             for i in self.taskList:
@@ -804,9 +830,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.question(self, 
                                                 "EasyOM",
                                                 l.taskName[self.curLang] + ": " + taskName + "\n" 
+                                                + l.taskType[self.curLang] + ": " + taskType + "\n"
                                                 + l.taskFreq[self.curLang] + ": " + taskFreq + "\n"
                                                 + l.taskDate[self.curLang] + ": " + taskDate + "\n"
                                                 + l.taskTime[self.curLang] + ": " + taskTime + "\n"
+                                                + l.taskDeli[self.curLang] + ": " + taskDeliNeed + "\n"
                                                 + l.taskSolution[self.curLang] + ": \n" + taskSolution + "\n",
                                                 QMessageBox.Ok)
         except:
@@ -850,7 +878,7 @@ class AddEmer(QDialog, Ui_addEmer):
                                                 QMessageBox.Ok)
         
         else:
-            text = "----\ntask_name : %s\ntask_freq : emergency\ntask_date : %s\ntask_time : %s\ntask_solution : %s\n" % (emerName, emerDate, emerTime, emerSolution)
+            text = "----\ntask_name : %s\ntask_type : 临时任务\ntask_freq : emergency\ntask_date : %s\ntask_time : %s\ntask_solution : %s\ntask_deli_need : no\n" % (emerName, emerDate, emerTime, emerSolution)
 
             if not path.isdir("conf"):
                 makedirs("conf")
