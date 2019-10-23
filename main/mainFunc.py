@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import *
 #from PyQt5.QtMultimedia import QSound
 from UIs.Ui_mainWindow import Ui_MainWindow
 from UIs.Ui_addEmer import Ui_addEmer
+from UIs.Ui_deliCommit import Ui_DeliCommit
 from langs import lanpacks as l
 from basifuns import timeFuncs as t
 from basifuns import configFuncs as c
@@ -209,8 +210,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def showDoneToday(self):
         taskList4Done = c.readDoneLogToday()
 
-        insInfo = [l.taskName[self.curLang], l.doneTime[self.curLang]]
-        insList = ["task_name", "done_time"]
+        insInfo = [l.taskName[self.curLang], l.taskType[self.curLang], l.doneTime[self.curLang], l.taskDeli[self.curLang]]
+        insList = ["task_name", "task_type", "done_time", "task_deli"]
 
         self.todayDoneTable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.todayDoneTable.model = QStandardItemModel(0, 0, self.todayDoneTable)
@@ -615,13 +616,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
             if reply == QMessageBox.Yes:
                 if isDeli:
-                    ...
+                    self.DeliComm = DeliCommit()
+                    self.DeliComm.cancelButton.clicked.connect(self.DeliComm.close)
+                    self.DeliComm.okButton.clicked.connect(lambda: self.doDeliCommit(taskName, taskType))
+                    self.DeliComm.show()
                 else:
                     self.todo2Done(taskName, taskType, taskDeli)
             else:
                 pass
         except:
             pass
+
+    def doDeliCommit(self, taskName, taskType):
+        if self.DeliComm.deli.text().strip() != "":
+            taskDeli = self.DeliComm.deli.text().strip()
+            self.DeliComm.close()
+            self.todo2Done(taskName, taskType, taskDeli)
+        else:
+            QMessageBox.question(self, 
+                                                "Info",
+                                                "可交付成果必须提交！",
+                                                QMessageBox.Ok)
 
     #todo2Done
     def todo2Done(self, taskName, taskType, taskDeli):
@@ -703,8 +718,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         endDate = self.endDate.date().toString("yyyy-MM-dd")
         pathList = c.walkDir("log", "done")
 
-        insInfo = [l.taskName[self.curLang], l.doneTime[self.curLang]]
-        insList = ["task_name", "done_time"]
+        insInfo = [l.taskName[self.curLang], l.taskType[self.curLang], l.doneTime[self.curLang], l.taskDeli[self.curLang]]
+        insList = ["task_name", "task_type", "done_time", "task_deli"]
 
         self.queryTable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.queryTable.model = QStandardItemModel(0, 0, self.queryTable)
@@ -753,7 +768,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ctTotal = t.strDateDiff(begDate, endDate) + 1
         ctVac = ctTotal - ctWork
 
-        self.totalDone.setText(str(ctWork))
+        self.totalDone.setText(str(ctDone))
         self.workDays.setText(str(ctWork))
         self.holiDays.setText(str(ctVac))
         
@@ -887,3 +902,10 @@ class AddEmer(QDialog, Ui_addEmer):
                 fa.write(text + "\n")
             
             self.close()
+
+class DeliCommit(QDialog, Ui_DeliCommit):
+    def __init__(self):
+        QDialog.__init__(self)
+        self.setupUi(self)
+        Qt.WA_DeleteOnClose = True
+        self.setWindowIcon(QIcon("src/icon.png"))

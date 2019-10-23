@@ -107,7 +107,7 @@ def readDoneLogToday():
                     tList = row.split(" : ")
                     dd[tList[0]] = tList[1]
             
-            if "task_name" in dd.keys() and "due_date" in dd.keys() and "done_time" in dd.keys():
+            if "task_name" in dd.keys() and "due_date" in dd.keys() and "done_time" in dd.keys() and "task_type" in dd.keys() and "task_deli" in dd.keys():
                 ddList.append(dd)
 
     except:
@@ -143,7 +143,7 @@ def readDoneLog(ddate):
                     tList = row.split(" : ")
                     dd[tList[0]] = tList[1]
             
-            if "task_name" in dd.keys() and "due_date" in dd.keys() and "done_time" in dd.keys():
+            if "task_name" in dd.keys() and "due_date" in dd.keys() and "done_time" in dd.keys() and "task_type" in dd.keys() and "task_deli" in dd.keys():
                 ddList.append(dd)
 
     except:

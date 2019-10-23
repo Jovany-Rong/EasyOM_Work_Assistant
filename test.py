@@ -10,4 +10,4 @@ from basifuns import timeFuncs as t
 from basifuns import configFuncs as c
 
 if __name__ == "__main__":
-    print(t.getTimeHm())
+    print(len(c.readDoneLog('2019-10-23')))
