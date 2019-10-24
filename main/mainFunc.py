@@ -17,6 +17,7 @@ import time
 import ctypes
 import re
 from os import path, makedirs
+import qtawesome
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     curLang = 1
@@ -52,6 +53,90 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.pageRefreshButton.clicked.connect(self.refresh)
         self.queryButton.clicked.connect(self.query)
         self.analysisButton.clicked.connect(self.analysis)
+        self.stop.clicked.connect(self.close)
+        self.min.clicked.connect(self.showMinimized)
+        self.max.clicked.connect(self.showMaximized)
+        self.beautify()
+
+    def beautify(self):
+        self.setWindowOpacity(0.9)
+        self.setWindowFlag(Qt.FramelessWindowHint)
+        pe = QPalette()
+        self.setAutoFillBackground(True)
+        pe.setColor(QPalette.Window,Qt.lightGray)
+        self.setPalette(pe)
+        self.stop.setStyleSheet('''QPushButton{background:#F76677;border-radius:11px;}
+QPushButton:hover{background:red;}''')
+        self.min.setStyleSheet('''QPushButton{background:#F7D674;border-radius:11px;}
+QPushButton:hover{background:yellow;}''')
+        self.max.setStyleSheet('''QPushButton{background:#6DDF6D;border-radius:11px;}
+QPushButton:hover{background:green;}''')
+        self.emerAddButton.setStyleSheet('''QPushButton{border:none;}
+        QPushButton:hover{color:white;
+                    border:2px solid #F3F3F5;
+                    border-radius:35px;
+                    background:darkGray;}''')
+        self.pageRefreshButton.setStyleSheet('''QPushButton{border:none;}
+        QPushButton:hover{color:white;
+                    border:2px solid #F3F3F5;
+                    border-radius:35px;
+                    background:darkGray;}''')
+        self.emerAddButton.setIcon(qtawesome.icon('fa5s.file-alt', color='gray'))
+        self.pageRefreshButton.setIcon(qtawesome.icon('fa5s.play-circle', color='gray'))
+        self.taskListTable.horizontalHeader().setStretchLastSection(True)
+        self.todayTodoTable.horizontalHeader().setStretchLastSection(True)
+        self.todayDoneTable.horizontalHeader().setStretchLastSection(True)
+        #self.taskListTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        
+        self.setStyleSheet("""
+        QTableView , QTableWidget{
+        selection-background-color:#44c767;
+        background-color:white;
+        border:1px solid #E0DDDC;
+        gridline-color:lightgray;
+        }
+        QHeaderView::section{
+        background-color:white;
+        border:0px solid #E0DDDC;
+        border-bottom:1px solid #E0DDDC;
+        height:20px;
+        font-size:14px;
+        }
+        QTabWidget::pane{
+border:none;
+}
+
+QTabWidget::tab-bar {
+     left: 5px;
+     font-weight:bold;
+     font-family:FangSong;
+}
+
+QTabBar::tab {
+     background: lightgray;
+     /*border: 2px solid #C4C4C3;*/
+     border-bottom-color: #C2C7CB;
+     border-top-left-radius: 4px;
+     border-top-right-radius: 4px;
+     min-width: 60px;
+     padding: 2px;
+     font-weight:bold;
+     font-family:FangSong;
+ }
+
+QTabBar::tab:selected{
+    background:qlineargradient(spread:pad,x1:0,y1:0,x2:0,y2:1,stop:0 #626262,stop:1 #545454);
+}
+
+QTabBar::tab:!selected{
+    margin-top:5px;
+}
+#tab,#tab_2,#tab_3{
+    background:qlineargradient(spread:pad,x1:0,y1:0,x2:0,y2:1,stop:0 #626262,stop:1 #545454);
+    border-radius:6px;
+}
+        """)
+        
 
     #event
     def closeEvent(self, event):
@@ -759,11 +844,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ctDone = 0
         ctWork = 0
 
+        taskAll = []
+
         for path in pathList:
             fileDate = c.getDoneFileDate(path)
             if t.strDateGreater(fileDate, begDate) and t.strDateGreater(endDate, fileDate):
                 ctDone += len(c.readDoneLog(fileDate))
+                taskAll = taskAll + c.readDoneLog(fileDate)
                 ctWork += 1
+
+        typeDict = dict()
+
+        for task in taskAll:
+            if task["task_type"] not in typeDict:
+                typeDict[task["task_type"]] = 1
+            else:
+                typeDict[task["task_type"]] += 1
+
+        text = ""
+
+        for typee in typeDict:
+            text = text + "%s : %s\n\n" % (typee, str(typeDict[typee]))
+
+        text = text.strip()
 
         ctTotal = t.strDateDiff(begDate, endDate) + 1
         ctVac = ctTotal - ctWork
@@ -771,6 +874,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.totalDone.setText(str(ctDone))
         self.workDays.setText(str(ctWork))
         self.holiDays.setText(str(ctVac))
+        self.typeNo.setText(text)
         
     def showListMenu(self):
         self.taskListTable.contextMenu = QMenu(self)
