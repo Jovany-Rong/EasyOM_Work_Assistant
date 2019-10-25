@@ -24,6 +24,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     taskList = list()
     todoList = list()
     alertList = list()
+    curSkin = ""
 
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -56,51 +57,221 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.stop.clicked.connect(self.close)
         self.min.clicked.connect(self.showMinimized)
         self.max.clicked.connect(self.showMaximized)
+        self.skin.clicked.connect(self.changeSkin)
         self.beautify()
+        self.skinBlack()
+
 
     def beautify(self):
         self.setWindowOpacity(0.9)
         self.setWindowFlag(Qt.FramelessWindowHint)
-        pe = QPalette()
-        self.setAutoFillBackground(True)
-        pe.setColor(QPalette.Window,Qt.lightGray)
-        self.setPalette(pe)
+        
         self.stop.setStyleSheet('''QPushButton{background:#F76677;border-radius:11px;}
 QPushButton:hover{background:red;}''')
         self.min.setStyleSheet('''QPushButton{background:#F7D674;border-radius:11px;}
 QPushButton:hover{background:yellow;}''')
         self.max.setStyleSheet('''QPushButton{background:#6DDF6D;border-radius:11px;}
 QPushButton:hover{background:green;}''')
-        self.emerAddButton.setStyleSheet('''QPushButton{border:none;}
+        
+        self.skin.setStyleSheet(
+            """
+        QPushButton{border:0px;
+        border-radius:5px;
+        color:lightGray;
+        background:gray;}
+        QPushButton:hover{color:white;
+                    border:1px solid #F3F3F5;
+                    border-radius:5px;
+                    background:darkGray;}
+            """
+        )
+        self.buttonQss = """
+        QPushButton{border:2px solid #F3F3F5;
+        border-radius:7px;
+        color:lightGray;
+        background:darkGray;}
         QPushButton:hover{color:white;
                     border:2px solid #F3F3F5;
-                    border-radius:35px;
-                    background:darkGray;}''')
-        self.pageRefreshButton.setStyleSheet('''QPushButton{border:none;}
-        QPushButton:hover{color:white;
-                    border:2px solid #F3F3F5;
-                    border-radius:35px;
-                    background:darkGray;}''')
-        self.emerAddButton.setIcon(qtawesome.icon('fa5s.file-alt', color='gray'))
-        self.pageRefreshButton.setIcon(qtawesome.icon('fa5s.play-circle', color='gray'))
+                    border-radius:7px;
+                    background:darkGray;}
+        """
+        self.emerAddButton.setIcon(qtawesome.icon('fa5s.file-alt', color='white'))
+        self.pageRefreshButton.setIcon(qtawesome.icon('fa5s.play-circle', color='white'))
+        self.skin.setIcon(qtawesome.icon('fa5s.sun', color='yellow'))
         self.taskListTable.horizontalHeader().setStretchLastSection(True)
         self.todayTodoTable.horizontalHeader().setStretchLastSection(True)
         self.todayDoneTable.horizontalHeader().setStretchLastSection(True)
+        self.queryTable.horizontalHeader().setStretchLastSection(True)
         #self.taskListTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         
+        
+
+        scrollBarQss = """
+QScrollBar:vertical
+{
+    width:8px;
+    background:rgba(0,0,0,0%);
+    margin:0px,0px,0px,0px;
+    padding-top:9px;   
+    padding-bottom:9px;
+}
+QScrollBar::handle:vertical
+{
+    width:8px;
+    background:rgba(0,0,0,25%);
+    border-radius:4px;  
+    min-height:20;
+}
+QScrollBar::handle:vertical:hover
+{
+    width:8px;
+    background:rgba(0,0,0,50%);   
+    border-radius:4px;
+    min-height:20;
+}
+QScrollBar::add-line:vertical   
+{
+    height:9px;width:8px;
+    border-image:url(:/images/a/3.png);
+    subcontrol-position:bottom;
+}
+QScrollBar::sub-line:vertical 
+{
+    height:9px;width:8px;
+    border-image:url(:/images/a/1.png);
+    subcontrol-position:top;
+}
+QScrollBar::add-line:vertical:hover 
+{
+    height:9px;width:8px;
+    border-image:url(:/images/a/4.png);
+    subcontrol-position:bottom;
+}
+QScrollBar::sub-line:vertical:hover 
+{
+    height:9px;width:8px;
+    border-image:url(:/images/a/2.png);
+    subcontrol-position:top;
+}
+QScrollBar::add-page:vertical,QScrollBar::sub-page:vertical 
+{
+    background:rgba(0,0,0,10%);
+    border-radius:4px;
+}
+QScrollBar:horizontal
+{
+    height:8px;
+    background:rgba(0,0,0,0%);
+    margin:0px,0px,0px,0px;
+    padding-left:9px; 
+    padding-right:9px;
+}
+QScrollBar::handle:horizontal
+{
+    height:8px;
+    background:rgba(0,0,0,25%);
+    border-radius:4px;  
+    min-width:20;
+}
+QScrollBar::handle:horizontal:hover
+{
+    height:8px;
+    background:rgba(0,0,0,50%);  
+    border-radius:4px;
+    min-width:20;
+}
+QScrollBar::add-line:horizontal  
+{
+    width:9px;height:8px;
+    border-image:url(:/images/a/3.png);
+    subcontrol-position:bottom;
+}
+QScrollBar::sub-line:horizontal  
+{
+    width:9px;height:8px;
+    border-image:url(:/images/a/1.png);
+    subcontrol-position:top;
+}
+QScrollBar::add-line:horizontal:hover  
+{
+    width:9px;height:8px;
+    border-image:url(:/images/a/4.png);
+    subcontrol-position:bottom;
+}
+QScrollBar::sub-line:horizontal:hover  
+{
+    width:9px;height:8px;
+    border-image:url(:/images/a/2.png);
+    subcontrol-position:top;
+}
+QScrollBar::add-page:horizontal,QScrollBar::sub-page:horizontal  
+{
+    background:rgba(0,0,0,10%);
+    border-radius:4px;
+}
+        """
+
+        self.taskListTable.setStyleSheet(scrollBarQss)
+        self.todayTodoTable.setStyleSheet(scrollBarQss)
+        self.todayDoneTable.setStyleSheet(scrollBarQss)
+        
+
+    def skinBlack(self):
+        pe = QPalette()
+        self.setAutoFillBackground(True)
+        pe.setColor(QPalette.Window,Qt.lightGray)
+        self.setPalette(pe)
+
+        self.emerAddButton.setStyleSheet('''QPushButton{border:none;
+        color:lightGray;}
+        QPushButton:hover{color:white;
+                    border:2px solid #F3F3F5;
+                    border-radius:7px;
+                    background:darkGray;}''')
+        self.pageRefreshButton.setStyleSheet('''QPushButton{border:none;
+        color:lightGray;}
+        QPushButton:hover{color:white;
+                    border:2px solid #F3F3F5;
+                    border-radius:7px;
+                    background:darkGray;}''')
+        self.queryButton.setStyleSheet("""
+        QPushButton{border:2px solid #F3F3F5;
+        border-radius:7px;
+        color:lightGray;
+        background:darkGray;}
+        QPushButton:hover{color:white;
+                    border:2px solid #F3F3F5;
+                    border-radius:7px;
+                    background:darkGray;}
+        """)
+        self.analysisButton.setStyleSheet("""
+        QPushButton{border:2px solid #F3F3F5;
+        border-radius:7px;
+        color:lightGray;
+        background:darkGray;}
+        QPushButton:hover{color:white;
+                    border:2px solid #F3F3F5;
+                    border-radius:7px;
+                    background:darkGray;}
+        """)
+
         self.setStyleSheet("""
+        QMessageBox{
+            background-color:lightGray;
+        }
         QTableView , QTableWidget{
         selection-background-color:#44c767;
-        background-color:white;
+        background-color:lightGray;
         border:1px solid #E0DDDC;
-        gridline-color:lightgray;
+        gridline-color:white;
         }
         QHeaderView::section{
-        background-color:white;
+        background-color: #00CCCC;
         border:0px solid #E0DDDC;
         border-bottom:1px solid #E0DDDC;
         height:20px;
         font-size:14px;
+        font-weight:bold;
         }
         QTabWidget::pane{
 border:none;
@@ -121,11 +292,12 @@ QTabBar::tab {
      min-width: 60px;
      padding: 2px;
      font-weight:bold;
-     font-family:FangSong;
+     font-family:Song;
  }
 
 QTabBar::tab:selected{
     background:qlineargradient(spread:pad,x1:0,y1:0,x2:0,y2:1,stop:0 #626262,stop:1 #545454);
+    color:white;
 }
 
 QTabBar::tab:!selected{
@@ -136,7 +308,109 @@ QTabBar::tab:!selected{
     border-radius:6px;
 }
         """)
-        
+
+        self.curSkin = "black"
+
+    def skinPink(self):
+        pe = QPalette()
+        self.setAutoFillBackground(True)
+        pe.setColor(QPalette.Window, QColor(242,227,242,1))
+        self.setPalette(pe)
+
+        self.emerAddButton.setStyleSheet('''QPushButton{border:none;
+        color:#f4d6f5;}
+        QPushButton:hover{color:white;
+                    border:2px solid #F3F3F5;
+                    border-radius:7px;
+                    background:#e49ee5;}''')
+        self.pageRefreshButton.setStyleSheet('''QPushButton{border:none;
+        color:#f4d6f5;}
+        QPushButton:hover{color:white;
+                    border:2px solid #F3F3F5;
+                    border-radius:7px;
+                    background:#e49ee5;}''')
+        self.queryButton.setStyleSheet("""
+        QPushButton{border:2px solid #F3F3F5;
+        border-radius:7px;
+        color:#f4d6f5;
+        background:#e49ee5;}
+        QPushButton:hover{color:white;
+                    border:2px solid #F3F3F5;
+                    border-radius:7px;
+                    background:#e49ee5;}
+        """)
+        self.analysisButton.setStyleSheet("""
+        QPushButton{border:2px solid #F3F3F5;
+        border-radius:7px;
+        color:#f4d6f5;
+        background:#e49ee5;}
+        QPushButton:hover{color:white;
+                    border:2px solid #F3F3F5;
+                    border-radius:7px;
+                    background:#e49ee5;}
+        """)
+
+        self.setStyleSheet("""
+        QMessageBox{
+            background-color:#f4d6f5;
+        }
+        QTableView , QTableWidget{
+        selection-background-color:#44c767;
+        background-color:#f4d6f5;
+        border:1px solid #E0DDDC;
+        gridline-color:white;
+        }
+        QHeaderView::section{
+        background-color: #00CCCC;
+        border:0px solid #E0DDDC;
+        border-bottom:1px solid #E0DDDC;
+        height:20px;
+        font-size:14px;
+        font-weight:bold;
+        }
+        QTabWidget::pane{
+border:none;
+}
+
+QTabWidget::tab-bar {
+     left: 5px;
+     font-weight:bold;
+     font-family:FangSong;
+}
+
+QTabBar::tab {
+     background: #f4d6f5;
+     /*border: 2px solid #C4C4C3;*/
+     border-bottom-color: #C2C7CB;
+     border-top-left-radius: 4px;
+     border-top-right-radius: 4px;
+     min-width: 60px;
+     padding: 2px;
+     font-weight:bold;
+     font-family:Song;
+ }
+
+QTabBar::tab:selected{
+    background:qlineargradient(spread:pad,x1:0,y1:0,x2:0,y2:1,stop:0 #626262,stop:1 #545454);
+    color:white;
+}
+
+QTabBar::tab:!selected{
+    margin-top:5px;
+}
+#tab,#tab_2,#tab_3{
+    background:qlineargradient(spread:pad,x1:0,y1:0,x2:0,y2:1,stop:0 #626262,stop:1 #545454);
+    border-radius:6px;
+}
+        """)
+
+        self.curSkin = "pink"
+
+    def changeSkin(self):
+        if self.curSkin == "black":
+            self.skinPink()
+        else:
+            self.skinBlack()
 
     #event
     def closeEvent(self, event):

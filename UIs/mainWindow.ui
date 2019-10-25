@@ -105,6 +105,28 @@
         </property>
        </spacer>
       </item>
+      <item>
+       <widget class="QPushButton" name="skin">
+        <property name="minimumSize">
+         <size>
+          <width>23</width>
+          <height>23</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>23</width>
+          <height>23</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Skin 皮肤</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>
@@ -223,7 +245,7 @@
        </font>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -238,7 +260,7 @@
              <widget class="QLabel" name="todayTodoLabel">
               <property name="font">
                <font>
-                <family>微软雅黑</family>
+                <family>华文细黑</family>
                 <pointsize>12</pointsize>
                 <weight>75</weight>
                 <bold>true</bold>
@@ -276,6 +298,7 @@
              <widget class="QLabel" name="todayDoneLabel">
               <property name="font">
                <font>
+                <family>华文细黑</family>
                 <pointsize>12</pointsize>
                 <weight>75</weight>
                 <bold>true</bold>
@@ -310,9 +333,9 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0">
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,1">
+           <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,0">
             <property name="sizeConstraint">
              <enum>QLayout::SetDefaultConstraint</enum>
             </property>
@@ -320,24 +343,24 @@
              <widget class="QPushButton" name="emerAddButton">
               <property name="minimumSize">
                <size>
-                <width>200</width>
+                <width>100</width>
                 <height>0</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
-                <width>200</width>
+                <width>100</width>
                 <height>16777215</height>
                </size>
               </property>
               <property name="font">
                <font>
-                <family>隶书</family>
+                <family>微软雅黑</family>
                 <pointsize>12</pointsize>
                </font>
               </property>
               <property name="text">
-               <string>Add An Emergency</string>
+               <string>Add</string>
               </property>
              </widget>
             </item>
@@ -345,24 +368,24 @@
              <widget class="QPushButton" name="pageRefreshButton">
               <property name="minimumSize">
                <size>
-                <width>200</width>
+                <width>100</width>
                 <height>0</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
-                <width>200</width>
+                <width>100</width>
                 <height>16777215</height>
                </size>
               </property>
               <property name="font">
                <font>
-                <family>隶书</family>
+                <family>微软雅黑</family>
                 <pointsize>12</pointsize>
                </font>
               </property>
               <property name="text">
-               <string>Page Refresh</string>
+               <string>Refresh</string>
               </property>
              </widget>
             </item>
@@ -389,6 +412,7 @@
            <widget class="QLabel" name="taskListLabel">
             <property name="font">
              <font>
+              <family>华文细黑</family>
               <pointsize>12</pointsize>
               <weight>75</weight>
               <bold>true</bold>
@@ -460,6 +484,12 @@
           </item>
           <item>
            <widget class="QPushButton" name="queryButton">
+            <property name="maximumSize">
+             <size>
+              <width>80</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="text">
              <string>PushButton</string>
             </property>
@@ -472,6 +502,15 @@
           <property name="editTriggers">
            <set>QAbstractItemView::NoEditTriggers</set>
           </property>
+          <attribute name="horizontalHeaderMinimumSectionSize">
+           <number>80</number>
+          </attribute>
+          <attribute name="verticalHeaderDefaultSectionSize">
+           <number>30</number>
+          </attribute>
+          <attribute name="verticalHeaderMinimumSectionSize">
+           <number>27</number>
+          </attribute>
          </widget>
         </item>
        </layout>
@@ -514,6 +553,18 @@
           </item>
           <item>
            <widget class="QPushButton" name="analysisButton">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>80</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="text">
              <string>PushButton</string>
             </property>
