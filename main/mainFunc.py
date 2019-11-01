@@ -25,6 +25,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     todoList = list()
     alertList = list()
     curSkin = ""
+    curWin = 1
 
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -56,10 +57,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.analysisButton.clicked.connect(self.analysis)
         self.stop.clicked.connect(self.close)
         self.min.clicked.connect(self.showMinimized)
-        self.max.clicked.connect(self.showMaximized)
+        self.max.clicked.connect(self.windowMax)
         self.skin.clicked.connect(self.changeSkin)
         self.beautify()
         self.skinBlack()
+
+    def windowMax(self):
+        if self.curWin == 1:
+            self.showMaximized()
+            self.curWin = 2
+        else:
+            self.showNormal()
+            self.curWin = 1
 
 
     def beautify(self):
