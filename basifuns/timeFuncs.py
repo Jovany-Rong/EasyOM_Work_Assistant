@@ -23,6 +23,13 @@ def whatDayToday(lang):
 
     return weekList[int(whatDay)][lang]
 
+def whatDay(lang, date):
+    whatday= datetime.datetime.strptime(date,'%Y-%m-%d').strftime("%w")
+
+    weekList = [l.sunday, l.monday, l.tuesday, l.wednesday, l.thursday, l.friday, l.saturday]
+
+    return weekList[int(whatday)][lang]    
+
 def getLastDay(wDay):
     yr = int(time.strftime("%Y",time.localtime(time.time())))
     mo = int(time.strftime("%m",time.localtime(time.time())))
@@ -147,6 +154,11 @@ def whatMonthToday():
     month = time.strftime("%m",time.localtime(time.time()))
 
     return month
+
+def whatRiToday():
+    ri = time.strftime("%d",time.localtime(time.time()))
+
+    return ri
 
 def strDateGreater(aDate, bDate):
     if "-" not in bDate:

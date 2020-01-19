@@ -17,7 +17,9 @@ import time
 import ctypes
 import re
 from os import path, makedirs
+import os.path
 import qtawesome
+import base64
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     curLang = 1
@@ -104,15 +106,17 @@ QPushButton:hover{background:green;}''')
                     border-radius:7px;
                     background:darkGray;}
         """
-        self.emerAddButton.setIcon(qtawesome.icon('fa5s.file-alt', color='white'))
-        self.pageRefreshButton.setIcon(qtawesome.icon('fa5s.play-circle', color='white'))
-        self.skin.setIcon(qtawesome.icon('fa5s.sun', color='yellow'))
-        self.taskListTable.horizontalHeader().setStretchLastSection(True)
-        self.todayTodoTable.horizontalHeader().setStretchLastSection(True)
-        self.todayDoneTable.horizontalHeader().setStretchLastSection(True)
-        self.queryTable.horizontalHeader().setStretchLastSection(True)
-        #self.taskListTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        
+        try:
+            self.emerAddButton.setIcon(qtawesome.icon('fa5s.file-alt', color='white'))
+            self.pageRefreshButton.setIcon(qtawesome.icon('fa5s.play-circle', color='white'))
+            self.skin.setIcon(qtawesome.icon('fa5s.sun', color='yellow'))
+            self.taskListTable.horizontalHeader().setStretchLastSection(True)
+            self.todayTodoTable.horizontalHeader().setStretchLastSection(True)
+            self.todayDoneTable.horizontalHeader().setStretchLastSection(True)
+            self.queryTable.horizontalHeader().setStretchLastSection(True)
+            #self.taskListTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        except:
+            pass
         
 
         scrollBarQss = """
@@ -959,6 +963,69 @@ QTabBar::tab:!selected{
         else:
             return False
     
+    def isOverTime(self, task, fileDate):
+        if task["task_type"] == "临时任务":
+            return False
+
+        missionList = c.readTasksConf()
+
+        target = None
+
+        for mission in missionList:
+            if mission["task_name"] == task["task_name"]:
+                target = mission
+                break
+        
+        if target == None:
+            return False
+
+        fileRi = fileDate.split("-")[2]
+        fileDay = t.whatDay(self.curLang, fileDate)
+
+        if target["task_freq"] == "daily_weekday" or target["task_freq"] == "daily_weekend":
+            return False
+        elif target["task_freq"] == "weekly_sunday":
+            if fileDay in l.sunday:
+                return False
+            else:
+                return True
+        elif target["task_freq"] == "weekly_monday":
+            if fileDay in l.monday:
+                return False
+            else:
+                return True
+        elif target["task_freq"] == "weekly_tuesday":
+            if fileDay in l.tuesday:
+                return False
+            else:
+                return True
+        elif target["task_freq"] == "weekly_wednesday":
+            if (fileDay in l.wednesday):
+                return False
+            else:
+                return True
+        elif target["task_freq"] == "weekly_thursday":
+            if (fileDay in l.thursday):
+                return False
+            else:
+                return True
+        elif target["task_freq"] == "weekly_friday":
+            if (fileDay in l.friday):
+                return False
+            else:
+                return True
+        elif target["task_freq"] == "weekly_saturday":
+            if (fileDay in l.saturday):
+                return False
+            else:
+                return True
+        else:
+            targetDay = target["task_date"].split("_")[-1].strip()
+            if fileRi == targetDay:
+                return False
+            else:
+                return True
+
     #button for table
     def todoAct(self):
         index =  self.todayTodoTable.currentIndex()
@@ -1042,7 +1109,7 @@ QTabBar::tab:!selected{
 
         while True:
             try:
-                text = text + ("----\ntask_name : %s\ndue_date : %s\n" % (self.todayTodoTable.model.item(rowNum, 0).text(), ""))
+                text = text + ("----\ntask_name : %s\ntask_type : %s\ndue_date : %s\n" % (self.todayTodoTable.model.item(rowNum, 0).text(), self.todayTodoTable.model.item(rowNum, 1).text(), ""))
                 rowNum += 1
             except:
                 break
@@ -1122,21 +1189,86 @@ QTabBar::tab:!selected{
         begDate = self.begDate_2.date().toString("yyyy-MM-dd")
         endDate = self.endDate_2.date().toString("yyyy-MM-dd")
 
+        score = 0
+        scoreTemp = 0
+        weight = 0
+        scoreSysChk = 0
+        scoreSysChkTemp = 0
+        weightSysChk = 0
+        scoreDataEdit = 0
+        scoreDataEditTemp = 0
+        weightDataEdit = 0
+        scoreReqTrck = 0
+        scoreReqTrckTemp = 0
+        weightReqTrck = 0
+        scorePrjManChg = 0
+        scorePrjManChgTemp = 0
+        weightPrjManChg = 0
+        scoreOtherWork = 0
+        scoreOtherWorkTemp = 0
+        weightOtherWork = 0
+        scoreTempoWork = 0
+        scoreTempoWorkTemp = 0
+        weightTempoWork = 0
+
         pathList = c.walkDir("log", "done")
+
+        leftList = c.readLeftLogToday()
+
+        ctSysChkLeft = 0
+        ctDataEditLeft = 0
+        ctReqTrckLeft = 0
+        ctPrjManChgLeft = 0
+        ctOtherWorkLeft = 0
+
+        for left in leftList:
+            if left["task_type"] == "系统例行检查":
+                ctSysChkLeft += 1
+            elif left["task_type"] == "日常数据修改":
+                ctDataEditLeft += 1
+            elif left["task_type"] == "需求跟踪反馈":
+                ctReqTrckLeft += 1
+            elif left["task_type"] == "项目管理变更":
+                ctPrjManChgLeft += 1
+            elif left["task_type"] == "其他维护事务":
+                ctOtherWorkLeft += 1
 
         ctDone = 0
         ctWork = 0
 
         taskAll = []
 
+        ctOT = dict()
+        ctOT["系统例行检查"] = 0
+        ctOT["日常数据修改"] = 0
+        ctOT["需求跟踪反馈"] = 0
+        ctOT["项目管理变更"] = 0
+        ctOT["其他维护事务"] = 0
+
         for path in pathList:
             fileDate = c.getDoneFileDate(path)
             if t.strDateGreater(fileDate, begDate) and t.strDateGreater(endDate, fileDate):
-                ctDone += len(c.readDoneLog(fileDate))
-                taskAll = taskAll + c.readDoneLog(fileDate)
+                doneList = c.readDoneLog(fileDate)
+                ctDone += len(doneList)
+                taskAll = taskAll + doneList
                 ctWork += 1
 
+                for done in doneList:
+                    if self.isOverTime(done, fileDate):
+                        try:
+                            ctOT[done["task_type"]] += 1
+                        except:
+                            ctOT["其他维护事务"] += 1
+
         typeDict = dict()
+
+        typeDict["系统例行检查"] = 0
+        typeDict["日常数据修改"] = 0
+        typeDict["需求跟踪反馈"] = 0
+        typeDict["项目管理变更"] = 0
+        typeDict["其他维护事务"] = 0
+        typeDict["临时任务"] = 0
+        typeDict["Temporary Task"] = 0
 
         for task in taskAll:
             if task["task_type"] not in typeDict:
@@ -1158,6 +1290,284 @@ QTabBar::tab:!selected{
         self.workDays.setText(str(ctWork))
         self.holiDays.setText(str(ctVac))
         self.typeNo.setText(text)
+
+        if ctSysChkLeft >= 40:
+            wt = 5
+            scoreTemp += 0 * wt
+            weight += wt
+            scoreSysChkTemp += 0 * wt
+            weightSysChk += wt
+        else:
+            wt = 5
+            scoreTemp += 100 * (1 - (40 - ctSysChkLeft) / 40) * wt
+            weight += wt
+            scoreSysChkTemp += 100 * (1 - (40 - ctSysChkLeft) / 40) * wt
+            weightSysChk += wt
+
+        if ctOT["系统例行检查"] >= 40:
+            wt = 3
+            scoreTemp += 0 * wt
+            weight += wt
+            scoreSysChkTemp += 0 * wt
+            weightSysChk += wt
+        else:
+            wt = 3
+            scoreTemp += 100 * (1 - (40 - ctOT["系统例行检查"]) / 40) * wt
+            weight += wt
+            scoreSysChkTemp += 100 * (1 - (40 - ctOT["系统例行检查"]) / 40) * wt
+            weightSysChk += wt
+
+        if typeDict["系统例行检查"] >= 48:
+            wt = 2
+            scoreTemp += 100 * wt
+            weight += wt
+            scoreSysChkTemp += 100 * wt
+            weightSysChk += wt
+        else:
+            wt = 2
+            scoreTemp += 100 * (typeDict["系统例行检查"] / 48) * wt
+            weight += wt
+            scoreSysChkTemp += 100 * (typeDict["系统例行检查"] / 48) * wt
+            weightSysChk += wt
+
+        if ctDataEditLeft >= 20:
+            wt = 5
+            scoreTemp += 0 * wt
+            weight += wt
+            scoreDataEditTemp += 0 * wt
+            weightDataEdit += wt
+        else:
+            wt = 5
+            scoreTemp += 100 * (1 - (20 - ctDataEditLeft) / 20) * wt
+            weight += wt
+            scoreDataEditTemp += 100 * (1 - (20 - ctDataEditLeft) / 20) * wt
+            weightDataEdit += wt
+
+        if ctOT["日常数据修改"] >= 16:
+            wt = 3
+            scoreTemp += 0 * wt
+            weight += wt
+            scoreDataEditTemp += 0 * wt
+            weightDataEdit += wt
+        else:
+            wt = 3
+            scoreTemp += 100 * (1 - (16 - ctOT["日常数据修改"]) / 16) * wt
+            weight += wt
+            scoreDataEditTemp += 100 * (1 - (16 - ctOT["日常数据修改"]) / 16) * wt
+            weightDataEdit += wt
+
+        if typeDict["日常数据修改"] >= 40:
+            wt = 2
+            scoreTemp += 100 * wt
+            weight += wt
+            scoreDataEditTemp += 100 * wt
+            weightDataEdit += wt
+        else:
+            wt = 2
+            scoreTemp += 100 * (typeDict["日常数据修改"] / 40) * wt
+            weight += wt
+            scoreDataEditTemp += 100 * (typeDict["日常数据修改"] / 40) * wt
+            weightDataEdit += wt
+
+        if ctReqTrckLeft >= 20:
+            wt = 5
+            scoreTemp += 0 * wt
+            weight += wt
+            scoreReqTrckTemp += 0 * wt
+            weightReqTrck += wt
+        else:
+            wt = 5
+            scoreTemp += 100 * (1 - (20 - ctReqTrckLeft) / 20) * wt
+            weight += wt
+            scoreReqTrckTemp += 100 * (1 - (20 - ctReqTrckLeft) / 20) * wt
+            weightReqTrck += wt
+
+        if ctOT["需求跟踪反馈"] >= 8:
+            wt = 3
+            scoreTemp += 0 * wt
+            weight += wt
+            scoreReqTrckTemp += 0 * wt
+            weightReqTrck += wt
+        else:
+            wt = 3
+            scoreTemp += 100 * (1 - (8 - ctOT["需求跟踪反馈"]) / 8) * wt
+            weight += wt
+            scoreReqTrckTemp += 100 * (1 - (8 - ctOT["需求跟踪反馈"]) / 8) * wt
+            weightReqTrck += wt
+
+        if typeDict["需求跟踪反馈"] >= 20:
+            wt = 2
+            scoreTemp += 100 * wt
+            weight += wt
+            scoreReqTrckTemp += 100 * wt
+            weightReqTrck += wt
+        else:
+            wt = 2
+            scoreTemp += 100 * (typeDict["需求跟踪反馈"] / 20) * wt
+            weight += wt
+            scoreReqTrckTemp += 100 * (typeDict["需求跟踪反馈"] / 20) * wt
+            weightReqTrck += wt
+
+        if ctPrjManChgLeft >= 20:
+            wt = 5
+            scoreTemp += 0 * wt
+            weight += wt
+            scorePrjManChgTemp += 0 * wt
+            weightPrjManChg += wt
+        else:
+            wt = 5
+            scoreTemp += 100 * (1 - (20 - ctPrjManChgLeft) / 20) * wt
+            weight += wt
+            scorePrjManChgTemp += 100 * (1 - (20 - ctPrjManChgLeft) / 20) * wt
+            weightPrjManChg += wt
+
+        if ctOT["项目管理变更"] >= 8:
+            wt = 3
+            scoreTemp += 0 * wt
+            weight += wt
+            scorePrjManChgTemp += 0 * wt
+            weightPrjManChg += wt
+        else:
+            wt = 3
+            scoreTemp += 100 * (1 - (8 - ctOT["项目管理变更"]) / 8) * wt
+            weight += wt
+            scorePrjManChgTemp += 100 * (1 - (8 - ctOT["项目管理变更"]) / 8) * wt
+            weightPrjManChg += wt
+
+        if typeDict["项目管理变更"] >= 28:
+            wt = 2
+            scoreTemp += 100 * wt
+            weight += wt
+            scorePrjManChgTemp += 100 * wt
+            weightPrjManChg += wt
+        else:
+            wt = 2
+            scoreTemp += 100 * (typeDict["项目管理变更"] / 28) * wt
+            weight += wt
+            scorePrjManChgTemp += 100 * (typeDict["项目管理变更"] / 28) * wt
+            weightPrjManChg += wt
+
+        if ctOtherWorkLeft >= 20:
+            wt = 5
+            scoreTemp += 0 * wt
+            weight += wt
+            scoreOtherWorkTemp += 0 * wt
+            weightOtherWork += wt
+        else:
+            wt = 5
+            scoreTemp += 100 * (1 - (20 - ctOtherWorkLeft) / 20) * wt
+            weight += wt
+            scoreOtherWorkTemp += 100 * (1 - (20 - ctOtherWorkLeft) / 20) * wt
+            weightOtherWork += wt
+
+        if ctOT["其他维护事务"] >= 8:
+            wt = 3
+            scoreTemp += 0 * wt
+            weight += wt
+            scoreOtherWorkTemp += 0 * wt
+            weightOtherWork += wt
+        else:
+            wt = 3
+            scoreTemp += 100 * (1 - (8 - ctOT["其他维护事务"]) / 8) * wt
+            weight += wt
+            scoreOtherWorkTemp += 100 * (1 - (8 - ctOT["其他维护事务"]) / 8) * wt
+            weightOtherWork += wt
+
+        if typeDict["其他维护事务"] >= 20:
+            wt = 2
+            scoreTemp += 100 * wt
+            weight += wt
+            scoreOtherWorkTemp += 100 * wt
+            weightOtherWork += wt
+        else:
+            wt = 2
+            scoreTemp += 100 * (typeDict["其他维护事务"] / 20) * wt
+            weight += wt
+            scoreOtherWorkTemp += 100 * (typeDict["其他维护事务"] / 20) * wt
+            weightOtherWork += wt
+
+        ctTW = typeDict["临时任务"] + typeDict["Temporary Task"]
+
+        if ctTW >= 80:
+            wt = 3
+            scoreTemp += 100 * wt
+            weight += wt
+            scoreTempoWorkTemp += 100 * wt
+            weightTempoWork += wt
+        else:
+            wt = 3
+            scoreTemp += 100 * (ctTW / 80) * wt
+            weight += wt
+            scoreTempoWorkTemp += 100 * (ctTW / 80) * wt
+            weightTempoWork += wt
+
+        if weight > 0:
+            score = int(scoreTemp / weight)
+        if weightSysChk > 0:
+            scoreSysChk = int(scoreSysChkTemp / weightSysChk)
+        if weightDataEdit > 0:
+            scoreDataEdit = int(scoreDataEditTemp / weightDataEdit)
+        if weightReqTrck > 0:
+            scoreReqTrck = int(scoreReqTrckTemp / weightReqTrck)
+        if weightPrjManChg > 0:
+            scorePrjManChg = int(scorePrjManChgTemp / weightPrjManChg)
+        if weightOtherWork > 0:
+            scoreOtherWork = int(scoreOtherWorkTemp / weightOtherWork)
+        if weightTempoWork > 0:
+            scoreTempoWork = int(scoreTempoWorkTemp / weightTempoWork)
+
+        conf = c.readConfigConf()
+
+        organ = "未知部门"
+        team = "未知项目组"
+        name = "未知人员"
+
+        try:
+            organ = conf["organ"]
+            team = conf["team"]
+            name = conf["name"]
+        except:
+            pass
+        
+        outText = ""
+
+        month = time.strftime('%Y-%m',time.localtime(time.time()))
+
+        outText = """
+        month : %s
+        organ : %s
+        team : %s
+        name : %s
+        score : %s
+        syschk_score : %s
+        dataedit_score : %s
+        reqtrck_score : %s
+        prjmanchg_score : %s
+        otherwork_score : %s
+        tempowork_score : %s
+        ========
+        """ % (month, organ, team, name, score, scoreSysChk, scoreDataEdit, scoreReqTrck, scorePrjManChg, scoreOtherWork, scoreTempoWork)
+
+        for task in taskAll:
+            outText = outText + """
+        task_name : %s
+        task_type : %s
+        task_deli : %s
+        done_time : %s
+        ----
+        """ % (task["task_name"], task["task_type"], task["task_deli"], task["done_time"])
+
+        encTemp = base64.b64encode(outText.encode("utf-8")).decode("utf-8")
+
+        if not os.path.isdir("Output"):
+            makedirs("Output")
+
+        fileName = "%s_%s_%s_%s.omy" % (organ, team, name, month)
+
+        with open("Output/" + fileName, "w+", encoding='utf-8') as f:
+            f.write(encTemp)
+        
+        #print(outText)
         
     def showListMenu(self):
         self.taskListTable.contextMenu = QMenu(self)

@@ -5,6 +5,27 @@ import time
 import os
 from langs import lanpacks as l
 
+def readConfigConf():
+    path = "conf/config.conf"
+
+    conf = dict()
+
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            text = f.read()
+        
+        rowList = text.split("\n")
+        
+        for row in rowList:
+            if " : " in row:
+                tList = row.split(" : ")
+                conf[tList[0].strip()] = tList[1].strip()
+    
+    except:
+        pass
+        
+    return conf
+
 def readTasksConf():
     path = "conf/tasks.conf"
 
@@ -179,6 +200,9 @@ def readLeftLogToday():
                 if " : " in row:
                     tList = row.split(" : ")
                     dd[tList[0]] = tList[1]
+
+            if "task_type" not in dd.keys():
+                dd["task_type"] = "临时任务"
             
             if "task_name" in dd.keys() and "due_date" in dd.keys():
                 ddList.append(dd)
